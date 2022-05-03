@@ -52,10 +52,10 @@ class Circle:
         self.ctrl_c = True
  
     def main_loop(self):
-         self.position_x = 0
-         self.position_y = 0
-         self.yaw = 0
-         print(f" x={self.position_x} [m], y={self.position_y} [m], yaw={self.yaw} [degrees]")
+         self.position_x = 0.00
+         self.position_y = 0.00
+         self.yaw = 0.0
+         print(f" x=" + format(float(self.position_x),'.2f') + "[m], y=" + format(float(self.position_y),'.2f')+ " [m], yaw= " + format(float(math.degrees(self.yaw)),'.1f') + " [degrees]")
          
          startTime = time.time()
          while not self.ctrl_c :
@@ -71,7 +71,6 @@ class Circle:
  
                 self.pub.publish(self.vel_cmd)
             elif time.time() - startTime < 61:
-                print("One Circle has been completed")
                 #radius of circle 2:
                 path_rad = 0.5 # m
  
@@ -87,7 +86,7 @@ class Circle:
  
             if self.counter > 10:
                 self.counter = 0
-                print(f" x={round(self.position_x,2)} [m], y={round(self.position_y,2)} [m], yaw={round(math.degrees(self.yaw),1)} [degrees]")
+                print(f" x=" + format(float(self.position_x),'.2f') + "[m], y=" + format(float(self.position_y),'.2f')+ " [m], yaw= " + format(float(math.degrees(self.yaw)),'.1f') + " [degrees]")
 
             else:
                 self.counter += 1
