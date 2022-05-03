@@ -52,6 +52,11 @@ class Circle:
         self.ctrl_c = True
  
     def main_loop(self):
+         self.position_x = 0
+         self.position_y = 0
+         self.yaw = 0
+         print(f" x={self.position_x} [m], y={self.position_y} [m], yaw={self.yaw} [degrees]")
+         
          startTime = time.time()
          while not self.ctrl_c :
             if time.time() - startTime < 31:
@@ -66,6 +71,7 @@ class Circle:
  
                 self.pub.publish(self.vel_cmd)
             elif time.time() - startTime < 61:
+                print("One Circle has been completed")
                 #radius of circle 2:
                 path_rad = 0.5 # m
  
@@ -81,7 +87,8 @@ class Circle:
  
             if self.counter > 10:
                 self.counter = 0
-                print(f" x={self.position_x} [m], y={self.position_y} [m], yaw={self.yaw} [degrees]")   
+                print(f" x={round(self.position_x,2)} [m], y={round(self.position_y,2)} [m], yaw={round(math.degrees(self.yaw),1)} [degrees]")
+
             else:
                 self.counter += 1
  
@@ -90,6 +97,7 @@ class Circle:
 if __name__ == '__main__':
     vel_ctlr = Circle()
     try:
+        
         vel_ctlr.main_loop()
     except rospy.ROSInterruptException:
         pass
