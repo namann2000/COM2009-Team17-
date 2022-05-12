@@ -4,3 +4,21 @@ Upper: (100,260,255)
 Red
 Lower: (-2,200,100)
 Upper: (8,260,255)
+Green:
+Lower: (50,76,100)
+Upper: (75,260,255)
+Blue:
+Lower: (115,224,100)
+Upper: (131,260,255)
+Pink:
+Lower: (50,76,100)
+Upper: (75,260,255)
+Yellow:
+Lower: (115,224,100)
+Upper: (131,260,255)
+Pink:
+Lower: (148,212,100)
+Upper: (152,256,255)
+Yellow:
+Lower: (29,158,100)
+Upper: (32,258,255)
