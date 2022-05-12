@@ -1,3 +1,6 @@
 Turquoise 
 Lower: (85,76,100)
 Upper: (100,260,255)
+Red
+Lower: (-2,200,100)
+Upper: (8,260,255)
