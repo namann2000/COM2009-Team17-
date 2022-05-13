@@ -68,6 +68,8 @@ class Square:
         self.frontDistance = min(laser_data.ranges[:20] + laser_data.ranges[340:359])
         self.leftDistance = mean(laser_data.ranges[70:120])
         self.rightDistance = mean(laser_data.ranges[240:290])
+        self.frontRight = (min(laser_data.ranges[320:340]) + mean(laser_data.ranges[320:340]))/2
+        self.frontLeft = (min(laser_data.ranges[20:40]) + mean(laser_data.ranges[20:40]))/2
 
         self.minRight = min(laser_data.ranges[230:300])
         self.minLeft = min(laser_data.ranges[60:130])
@@ -127,17 +129,17 @@ class Square:
             
             ##########################
 
-
-            if self.frontDistance > 0.535:
+            midThreshold=0.45
+            if self.frontDistance > 0.65 and self.frontLeft > midThreshold and self.frontRight > midThreshold:
                 self.turnDirection="NONE"
-                self.print_stuff("Forward distance {}".format(self.frontDistance))
+                self.print_stuff("Left {}     Right {} ".format(self.frontLeft, self.frontRight))
 
 
                 # more space in front
                 
                 self.vel.linear.x=0.25
                 self.vel.angular.z = 0
-
+                
 
             else:
                 self.vel.linear.x=0
