@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # a template for the move_square exercise
+# task 2
 
 from statistics import mean
 import rospy
