@@ -1,0 +1,5 @@
+<launch>
+<arg name = "target_colour" default = "Red"/>
+<include file = "$(find turtlebot3_slam)/launch/turtlebot3_slam.launch" />
+<node pkg = "team17" type = "task5.py" name = "task5_node" output = "screen"/>
+</launch>
