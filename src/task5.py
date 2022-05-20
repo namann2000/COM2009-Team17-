@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-
+from os import system
+import numpy as np
 import rospy
+import roslaunch
 import pathlib
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
@@ -12,9 +14,11 @@ from geometry_msgs.msg import Twist
 class Square:
     def __init__(self):
         node_name = "task5_node"
+        self.epochs=0
         rospy.init_node(node_name)
 
         self.target_colour = sys.argv[0]
+        self.mapped=False
 
         self.base_image_path = pathlib.Path.home().joinpath("catkin_ws/src/team17/src/snaps/")
         self.base_image_path.mkdir(parents=True, exist_ok=True)
@@ -24,16 +28,23 @@ class Square:
 
         self.pub = rospy.Publisher("cmd_vel", Twist, queue_size=10)
         self.laser = rospy.Subscriber("scan", LaserScan, self.laser_function)
-        self.camera = rospy.Subscriber("/camera/rgb/image_raw", Image, self.camera_cb)
+        self.camera = rospy.Subscriber("/camera/color/image_raw", Image, self.camera_cb)
 
-        self.rate = rospy.Rate(300) # hz
+        self.rate = rospy.Rate(20) # hz
         
+
         self.vel = Twist()
 
         self.frontDistance=0.0
         self.rightDistance=0.0
         self.leftDistance=0.0
         self.turnDirection="NONE"
+        self.leftHazard=0.0
+        self.rightHazard=0.0
+        self.frontRight = 0.0
+        self.frontLeft = 0.0
+
+
 
         self.ctrl_c = False
 
@@ -60,7 +71,7 @@ class Square:
         try:
             cv_img = self.cvbridge_interface.imgmsg_to_cv2(img_data, desired_encoding="bgr8")
         except CvBridgeError as e:
-            print(e)
+            pass
 
         if self.waiting_for_image == True:
             height, width, channels = cv_img.shape
@@ -75,29 +86,65 @@ class Square:
         self.pub.publish(Twist())
         self.ctrl_c = True
     
+    def save_map(self):
+        system("rosrun map_server map_saver -f ~/catkin_ws/src/team17/maps/task5_map ")
+        
 
     def laser_function(self, laser_data):
+
+        for i, value in enumerate(laser_data.ranges):
+            if value==0:
+                laser_data.ranges[i]=1000
+
         self.frontDistance = min(laser_data.ranges[:20] + laser_data.ranges[340:359])
         self.leftDistance = mean(laser_data.ranges[70:120])
         self.rightDistance = mean(laser_data.ranges[240:290])
+        self.frontRight = (min(laser_data.ranges[320:340]) + mean(laser_data.ranges[320:340]))/2
+        self.frontLeft = (min(laser_data.ranges[20:40]) + mean(laser_data.ranges[20:40]))/2
+
 
         self.minRight = min(laser_data.ranges[230:300])
-        self.minLeft = min(laser_data.ranges[60:130])    
+        self.minLeft = min(laser_data.ranges[60:130])   
 
+        self.rearRight=mean(laser_data.ranges[165:180])
+        self.rearLeft=mean(laser_data.ranges[180:195])
 
-    def print_stuff(self, a_message):
-        print(a_message)
+        self.leftHazard=self.rearRight > 2*self.frontDistance
+        self.rightHazard=self.rearLeft > 2*self.frontDistance
+
+        self.dangerTotal=0
+        clone=[]
+        for i in range(360):
+            clone.append(laser_data.ranges[i])
+        clone.sort()
+        self.dangerTotal=mean(clone[0:30])
+        
+
 
 
     def main_loop(self):
+        brexit=rospy.get_time()
         while not self.ctrl_c:
-            if self.frontDistance > 0.4:
+            if rospy.get_time() - brexit >100 and self.mapped == False:
+                for i in range(20):
+                    print("MAP")
+                self.save_map()
+                print("7")
+                self.mapped=True
+            if self.frontDistance > 0.6 and self.dangerTotal>0.12:
+                if self.frontLeft > 0.6:
+                    self.vel.angular.z = -0.1
+                if self.frontRight > 0.6:
+                    self.vel.angular.z = 0.1
 
                 self.turnDirection="NONE"
-                self.print_stuff("Forward distance {}".format(self.frontDistance))
+
+
+                # more space in front
                 
-                self.vel.linear.x=0.25
-                self.vel.angular.z = 0
+                self.vel.linear.x=0.085
+                self.vel.angular.z = 0.01
+
 
             else:
                 self.vel.linear.x=0
@@ -105,19 +152,23 @@ class Square:
                 if  self.turnDirection == "NONE":
                     if self.rightDistance > self.leftDistance:
                         self.turnDirection="RIGHT"
-                        self.print_stuff("TURN DECISION RIGHT")
 
                     else:
                         self.turnDirection="LEFT"
-                        self.print_stuff("TURN DECISION LEFT")
 
                 elif self.turnDirection == "RIGHT":
-                    self.vel.angular.z = -0.3
+                    self.vel.angular.z = -0.6
+
                 elif self.turnDirection == "LEFT":
-                    self.vel.angular.z = 0.3          
-            
+                    self.vel.angular.z = 0.6
+
+            self.epochs+=1
             self.pub.publish(self.vel)
+            # call a function which prints some information to the terminal:
+            #self.print_stuff("this is a message that has been passed to the 'print_stuff()' method")
+            # maintain the loop rate @ 10 hz
             self.rate.sleep()
+
 
 if __name__ == '__main__':
     movesquare_instance = Square()
